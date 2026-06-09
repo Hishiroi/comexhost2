@@ -5,5 +5,5 @@
 // you redeploy the frontend without rebuilding.
 export const environment = {
   production: true,
-  apiUrl: 'https://api.your-comex-domain.example/api',
+  apiUrl: 'https://backend-ten-dusky-71.vercel.app/api',
 };

@@ -93,7 +93,7 @@ async function uploadFile(req, res, next) {
     const storedName = `${Date.now()}_${random}.pdf`;
 
     const { error: uploadError } = await supabase.storage
-      .from('files')
+      .from(env.supabase.bucket)
       .upload(storedName, req.file.buffer, {
         contentType: 'application/pdf',
       });
@@ -145,7 +145,7 @@ async function uploadFile(req, res, next) {
     } catch (e) {
       await conn.rollback();
       // Clean up Supabase file if DB insert fails
-      await supabase.storage.from('files').remove([storedName]);
+      await supabase.storage.from(env.supabase.bucket).remove([storedName]);
       throw e;
     } finally {
       conn.release();
@@ -293,7 +293,7 @@ async function downloadFile(req, res, next) {
     const row = await loadVisibleFile(req.user, id);
 
     const { data, error } = await supabase.storage
-      .from('files')
+      .from(env.supabase.bucket)
       .download(row.stored_name);
 
     if (error || !data) {
@@ -381,7 +381,7 @@ async function reuploadFile(req, res, next) {
       newStored = `${Date.now()}_${random}.pdf`;
 
       const { error: uploadError } = await supabase.storage
-        .from('files')
+        .from(env.supabase.bucket)
         .upload(newStored, req.file.buffer, {
           contentType: 'application/pdf',
         });
@@ -426,7 +426,7 @@ async function reuploadFile(req, res, next) {
       // Best-effort: drop the previous PDF from storage now that the row
       // points at the new file. Failure here is non-fatal.
       if (oldStored) {
-        await supabase.storage.from('files').remove([oldStored]);
+        await supabase.storage.from(env.supabase.bucket).remove([oldStored]);
       }
 
       const [updated] = await pool.query(

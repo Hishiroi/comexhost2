@@ -1,0 +1,81 @@
+<main class="login-shell">
+	<section class="login-card" aria-labelledby="login-title">
+		<div class="brand-lockup">
+			<img
+				ngSrc="/image/logo.png"
+				alt="Lalim Elementary School logo"
+				width="96"
+				height="96"
+				priority
+				class="brand-logo"
+			/>
+			<h1 id="login-title">Welcome Back</h1>
+			<p class="role-label">{{ roleLabel }} Portal Login</p>
+		</div>
+
+		<form class="login-form" (ngSubmit)="submit()" #f="ngForm" novalidate>
+			<label class="field" for="email">
+				<span>Email Address</span>
+				<div class="input-shell">
+					<input
+						id="email"
+						name="email"
+						type="email"
+						placeholder="@gmail.com"
+						autocomplete="email"
+						required
+						[(ngModel)]="email"
+						[disabled]="submitting()"
+					/>
+					<span class="field-icon" aria-hidden="true">&#9993;</span>
+				</div>
+			</label>
+
+			<label class="field" for="password">
+				<span>Password</span>
+				<div class="input-shell">
+					<input
+						id="password"
+						name="password"
+						type="password"
+						placeholder="Enter your password"
+						autocomplete="current-password"
+						required
+						[(ngModel)]="password"
+						[disabled]="submitting()"
+					/>
+					<span class="field-icon" aria-hidden="true">&#8962;</span>
+				</div>
+			</label>
+
+			<div class="form-error" role="alert" *ngIf="errorMessage()">
+				{{ errorMessage() }}
+			</div>
+
+			<div class="form-links">
+				<a href="#" aria-label="Recover your password">Forgot Password?</a>
+			</div>
+
+			<button
+				type="submit"
+				class="primary-action"
+				[disabled]="submitting() || f.invalid"
+			>
+				{{ submitting() ? 'Signing in...' : 'Login' }}
+			</button>
+		</form>
+	</section>
+
+	<section class="login-visual" aria-hidden="true">
+		<img
+			ngSrc="/image/loginbg.png"
+			alt=""
+			fill
+			priority
+			sizes="100vw"
+			class="visual-image"
+		/>
+
+		<div class="visual-overlay"></div>
+	</section>
+</main>

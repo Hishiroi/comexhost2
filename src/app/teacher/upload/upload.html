@@ -1,0 +1,167 @@
+<div class="upload-page">
+  <section class="card upload-card" aria-label="Upload PDF">
+    <div class="card-title">Upload New Version</div>
+
+    <input
+      #fileInput
+      type="file"
+      accept="application/pdf,.pdf"
+      hidden
+      (change)="onFileInputChange($event)"
+    />
+
+    <div
+      class="dropzone"
+      role="button"
+      tabindex="0"
+      [class.dragging]="isDragging"
+      (click)="triggerFilePicker()"
+      (keydown.enter)="triggerFilePicker()"
+      (keydown.space)="triggerFilePicker()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <div class="dropzone-inner">
+        <div class="upload-icon">PDF</div>
+        <div class="dropzone-primary">Drop your PDF here or click to browse.</div>
+        <div class="dropzone-secondary">Only PDF files are supported.</div>
+      </div>
+    </div>
+
+    <div class="selected" *ngIf="selectedFile">
+      <div class="selected-name">{{ selectedFile.name }}</div>
+    </div>
+
+    <label class="meta-field">
+      <span>Custom document type</span>
+      <input
+        type="text"
+        name="moreCustom"
+        placeholder="e.g. Grade, Report (leave empty to use predefined workflow below)"
+        [(ngModel)]="moreCustomType"
+        [disabled]="submitting()"
+        (ngModelChange)="onMoreCustomChange()"
+      />
+    </label>
+
+    <div class="meta-field" *ngIf="customMode">
+      <span>Reviewers (pick 1–3)</span>
+      <div class="choice-row choice-row-tight">
+        <button
+          type="button"
+          class="choice-btn choice-btn-tight"
+          [class.choice-btn-active]="pickCoordinator"
+          [disabled]="submitting()"
+          (click)="toggleStop(2)"
+        >
+          Coordinator
+        </button>
+        <button
+          type="button"
+          class="choice-btn choice-btn-tight"
+          [class.choice-btn-active]="pickMaster"
+          [disabled]="submitting()"
+          (click)="toggleStop(3)"
+        >
+          Master
+        </button>
+        <button
+          type="button"
+          class="choice-btn choice-btn-tight"
+          [class.choice-btn-active]="pickPrincipal"
+          [disabled]="submitting()"
+          (click)="toggleStop(4)"
+        >
+          Principal
+        </button>
+      </div>
+    </div>
+
+    <label class="meta-field">
+      <span>Predefined workflow</span>
+      <select
+        name="workflow"
+        [(ngModel)]="documentType"
+        [disabled]="submitting() || customMode"
+      >
+        <option value="dlp">DLP</option>
+        <option value="examination">Examination</option>
+      </select>
+      <span class="field-hint muted" *ngIf="customMode">Locked while using a custom type in “More”.</span>
+    </label>
+
+    <label class="meta-field">
+      <span>Additional notes (optional)</span>
+      <textarea
+        name="additionalDetails"
+        rows="2"
+        placeholder="Extra context (stored separately from document type)"
+        [(ngModel)]="additionalDetails"
+        [disabled]="submitting()"
+      ></textarea>
+    </label>
+
+    <label class="meta-field">
+      <span>Title</span>
+      <input
+        type="text"
+        name="title"
+        placeholder="e.g. Q1 Lesson Plan"
+        [(ngModel)]="title"
+        [disabled]="submitting()"
+      />
+    </label>
+
+    <label class="meta-field">
+      <span>Description (optional)</span>
+      <textarea
+        name="description"
+        rows="3"
+        placeholder="Briefly describe this submission"
+        [(ngModel)]="description"
+        [disabled]="submitting()"
+      ></textarea>
+    </label>
+
+    <div class="error" *ngIf="uploadError">{{ uploadError }}</div>
+    <div class="success" *ngIf="successMessage()">{{ successMessage() }}</div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="cancelSelection()"
+        [disabled]="submitting()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="!selectedFile || submitting()"
+        (click)="submitUpload()"
+      >
+        {{ submitting() ? 'Submitting...' : 'Submit' }}
+      </button>
+    </div>
+  </section>
+
+  <section class="preview-panel" aria-label="Document preview">
+    <div class="preview-header">
+      <div class="preview-title">{{ documentName || 'No file selected' }}</div>
+      <div class="preview-subtitle" *ngIf="submittedAt">
+        Submitted by: <strong>{{ submittedBy }}</strong> |
+        Submitted on: {{ submittedAt | date: 'longDate' }}
+      </div>
+    </div>
+
+    <div class="preview-frame" *ngIf="pdfUrl; else noPreview">
+      <iframe class="preview-iframe" [src]="pdfUrl" title="PDF preview"></iframe>
+    </div>
+
+    <ng-template #noPreview>
+      <div class="preview-empty">No PDF selected.</div>
+    </ng-template>
+  </section>
+</div>

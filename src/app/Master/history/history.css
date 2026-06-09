@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+.history-wrap {
+  display: block;
+}
+
+.page-head {
+  padding: 1rem 1.25rem 0;
+}
+
+.page-head h1 {
+  font-size: 1.15rem;
+  margin: 0 0 0.25rem;
+}
+
+.page-head p {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0;
+}

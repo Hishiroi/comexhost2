@@ -1,0 +1,52 @@
+<div *ngIf="shouldRun; else noSidenav">
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #sidenav
+      class="sidenav"
+      [mode]="drawerMode"
+      [(opened)]="opened"
+      [fixedInViewport]="fixedInViewport"
+      [fixedTopGap]="fixedTopGap"
+      [fixedBottomGap]="fixedBottomGap"
+    >
+      <div class="sidenav-content">
+        <div class="nav-header">
+          <button type="button" class="brand-button" (click)="sidenav.toggle()">
+            <img src="/image/logo.png" alt="COMEX logo" class="logo-image" />
+          </button>
+        </div>
+
+        <div class="nav-links" [class.teacher-nav]="currentSection === 'teacher'">
+          <a
+            *ngFor="let item of navLinks"
+            [routerLink]="item.route"
+            routerLinkActive="active-link"
+            [routerLinkActiveOptions]="item.route === '/profile' ? { exact: true } : { exact: false }"
+            class="nav-item"
+          >
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+          </a>
+
+          <div class="logout">
+            <a class="nav-item" (click)="logout()">
+              <mat-icon>exit_to_app</mat-icon>
+              <span>Logout</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="sidenav-main">
+      <app-header [sectionLabel]="sectionLabel" (menuClick)="toggleSidenav()"></app-header>
+      <div class="content-container">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+
+<ng-template #noSidenav>
+  <router-outlet></router-outlet>
+</ng-template>

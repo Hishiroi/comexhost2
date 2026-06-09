@@ -1,0 +1,85 @@
+<div class="content">
+  <main class="main" role="main">
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">Documents</div>
+      </div>
+
+      <div class="list-toolbar" *ngIf="!loading() && !errorMessage()">
+        <label class="sr-only" for="doc-list-search">Search documents</label>
+        <input
+          id="doc-list-search"
+          type="search"
+          name="docListSearch"
+          class="search-input"
+          [(ngModel)]="searchDraft"
+          (keydown.enter)="applySearch()"
+          placeholder="Search by ID, title, file, submitter…"
+          autocomplete="off"
+        />
+        <button type="button" class="btn-search" (click)="applySearch()">Search</button>
+        <button type="button" class="btn-clear" *ngIf="appliedSearchNorm" (click)="clearSearch()">Clear</button>
+      </div>
+
+      <p class="muted-row" *ngIf="loading()">Loading documents...</p>
+      <p class="error-row" *ngIf="errorMessage() && !loading()">{{ errorMessage() }}</p>
+
+      <div class="table-wrap" role="region" aria-label="Documents table" *ngIf="!loading() && !errorMessage()">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Title</th>
+              <th>File</th>
+              <th>Submitted by</th>
+              <th>Submitted on</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of displayRows"
+              class="row"
+              tabindex="0"
+              (click)="open(row)"
+              (keydown.enter)="open(row)"
+              (keydown.space)="open(row)"
+            >
+              <td class="mono">#{{ row.id }}</td>
+              <td>
+                <span
+                  class="doc-type"
+                  [class.doc-type-dlp]="row.documentType === 'dlp'"
+                  [class.doc-type-exam]="row.documentType === 'examination'"
+                >
+                  {{ row.typeLabel }}
+                </span>
+              </td>
+              <td>{{ row.title }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ row.submittedBy }}</td>
+              <td>{{ row.submittedOn | date: 'mediumDate' }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.pending]="row.statusTone === 'pending'"
+                  [class.in-review]="row.statusTone === 'in-review'"
+                  [class.done]="row.statusTone === 'done'"
+                >
+                  {{ row.statusLabel }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="rows.length === 0">
+              <td colspan="7" class="muted-row">{{ emptyMessage }}</td>
+            </tr>
+            <tr *ngIf="rows.length > 0 && displayRows.length === 0">
+              <td colspan="7" class="muted-row">No documents match your search.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>

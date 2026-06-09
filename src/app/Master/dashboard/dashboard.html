@@ -1,0 +1,66 @@
+<section class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">
+        Master Console<span *ngIf="roleLevel"> · Role level {{ roleLevel }}</span
+        ><span *ngIf="masterSkillLevel != null"> · Master level {{ masterSkillLevel }}</span>
+      </p>
+      <h1>Welcome back, {{ userName }}</h1>
+      <p class="subtitle">Review DLP files after the Coordinator clears them. Older Examination items may still appear if they were already routed to Master.</p>
+    </div>
+    <div class="summary">
+      <div class="summary-card">
+        <span class="summary-label">Awaiting your review</span>
+        <span class="summary-value">{{ awaitingMe }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Visible documents</span>
+        <span class="summary-value">{{ total }}</span>
+      </div>
+    </div>
+  </header>
+
+  <p class="muted" *ngIf="loading()">Loading queue...</p>
+  <p class="error-banner" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <section class="card wide">
+    <div class="card-header">
+      <h2>Your Review Queue</h2>
+      <div class="card-header-links">
+        <a routerLink="/profile" class="link">My profile</a>
+        <a routerLink="/master/document" class="link">All documents &rarr;</a>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Submitted by</th>
+            <th>Submitted on</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let file of queue"
+            class="row"
+            tabindex="0"
+            (click)="open(file)"
+            (keydown.enter)="open(file)"
+            (keydown.space)="open(file)"
+          >
+            <td>#{{ file.id }}</td>
+            <td>{{ file.title }}</td>
+            <td>{{ file.uploaded_by.name }}</td>
+            <td>{{ file.created_at | date: 'mediumDate' }}</td>
+          </tr>
+          <tr *ngIf="!loading() && queue.length === 0">
+            <td colspan="4" class="muted">Nothing waiting for you right now.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

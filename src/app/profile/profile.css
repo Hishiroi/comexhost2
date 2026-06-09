@@ -1,0 +1,407 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:host {
+  display: block;
+}
+
+.information-container {
+  padding: 20px;
+  max-width: 100%;
+  background-color: #f5f7f9;
+  min-height: calc(100vh - 64px);
+  color: #000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+}
+
+.success-banner {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: rgba(76, 161, 163, 0.18);
+  border-left: 4px solid #4ca1a3;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1f2a2e;
+}
+
+.error-banner {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: rgba(244, 67, 54, 0.08);
+  border-left: 4px solid #f44336;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #c62828;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.loading-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+  margin-bottom: 16px;
+  color: #4ca1a3;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+  margin-bottom: 16px;
+}
+
+.error-container h2 {
+  color: #f44336;
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.error-container button {
+  margin-top: 16px;
+}
+
+/* Header card */
+.student-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.student-profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.student-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: rgba(76, 161, 163, 0.15);
+  border: 2px solid rgba(76, 161, 163, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4ca1a3;
+}
+
+.student-image .placeholder-avatar {
+  font-size: 54px;
+  height: 54px;
+  width: 54px;
+}
+
+.student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-name {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.student-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #000;
+  font-size: 14px;
+  max-width: 100%;
+}
+
+.meta-item span {
+  word-break: break-word;
+}
+
+.meta-item mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  color: #4ca1a3;
+  flex-shrink: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Tabs */
+.info-tabs {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tab-content {
+  padding: 24px;
+  background: #fff !important;
+}
+
+.tab-content mat-card {
+  box-shadow: none !important;
+  padding: 0;
+  background: #fff !important;
+}
+
+.info-section {
+  margin-bottom: 8px;
+  background: #fff !important;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #4ca1a3;
+  margin: 0 0 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.info-grid.single-col {
+  grid-template-columns: 1fr;
+}
+
+.info-item.full-span {
+  grid-column: 1 / -1;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.info-label mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  color: #009688;
+}
+
+.info-value {
+  font-size: 16px;
+  color: #000;
+}
+
+.info-value.pre-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Keep long addresses from stretching the layout */
+.info-value.address-display {
+  max-height: 3.6em;
+  line-height: 1.4;
+  overflow-y: auto;
+  word-break: break-word;
+  white-space: pre-wrap;
+  text-align: start;
+}
+
+.address-field textarea.mat-mdc-input-element {
+  min-height: 2.5rem;
+  max-height: 4rem;
+  resize: none;
+  overflow-y: auto;
+  line-height: 1.35;
+}
+
+.notes-field textarea.mat-mdc-input-element {
+  max-height: 4rem;
+  resize: none;
+  overflow-y: auto;
+  line-height: 1.35;
+}
+
+mat-divider {
+  margin: 24px 0 !important;
+}
+
+/* Edit dialog body (outline fields live in overlay; Angular keeps encapsulation on template nodes) */
+.form-section {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid #4ca1a3;
+  margin-bottom: 16px;
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4ca1a3;
+  margin: 0 0 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.form-grid .grid-span-2 {
+  grid-column: 1 / -1;
+}
+
+.field-tall.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  padding-bottom: 2px;
+}
+
+@media (max-width: 768px) {
+  .information-container {
+    padding: 16px;
+  }
+
+  .student-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .student-profile {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .student-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .student-image .placeholder-avatar {
+    font-size: 44px;
+    height: 44px;
+    width: 44px;
+  }
+
+  .student-name {
+    font-size: 20px;
+  }
+
+  .student-meta {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .action-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tab-content {
+    padding: 16px;
+  }
+
+  .section-title {
+    text-align: center;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .info-item {
+    align-items: center;
+  }
+
+  .info-label {
+    justify-content: center;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .information-container {
+    padding: 12px;
+  }
+
+  .student-header {
+    padding: 12px;
+  }
+
+  .student-image {
+    width: 70px;
+    height: 70px;
+  }
+
+  .student-name {
+    font-size: 18px;
+  }
+
+  .tab-content {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .meta-item {
+    font-size: 12px;
+  }
+}

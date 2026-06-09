@@ -1,0 +1,476 @@
+:host {
+  --primary: #354f52;
+  --primary-ink: #2c3e3f;
+  --warning: #b45309;
+  --border: #e6e6e6;
+  --muted: #6b7280;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: block;
+  color: var(--primary-ink);
+}
+
+.review-page {
+  padding: 1rem;
+}
+
+/* Fullscreen mode: pull the entire review-page out as an overlay so
+   the PDF takes the whole viewport while comments/details stay in
+   the right column. */
+.review-page.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #f5f6f7;
+  overflow: auto;
+  padding: 0.75rem;
+}
+
+.banner {
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin: 0 0 0.85rem;
+  padding: 0.6rem 0.85rem;
+}
+
+.banner.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.banner.success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #166534;
+}
+
+.banner.warning {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.muted.small,
+.small {
+  font-size: 0.8rem;
+}
+
+/* ---------- Layout (matches wireframe) ----------
+   - Left column: large PDF preview
+   - Right column: stacked detail card (top) + timeline (bottom)
+   The PDF panel stays visible while typing comments because both
+   columns are siblings in the same grid row. */
+/* The grid fills the available viewport height so the PDF panel can
+   stretch full-height on the left while the right sidebar scrolls
+   independently. We use --row-h as a single tunable knob (overridden
+   in fullscreen mode below). */
+.review-grid {
+  --row-h: calc(100vh - 9rem);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 3fr) minmax(300px, 1fr);
+  align-items: stretch;
+  height: var(--row-h);
+}
+
+.review-page.fullscreen .review-grid {
+  --row-h: calc(100vh - 1.5rem);
+}
+
+@media (max-width: 1024px) {
+  .review-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+/* Right sidebar: stack details on top, timeline below. The whole
+   column scrolls as one independent region so the user can always
+   reach the Timeline regardless of how tall the details card grows.
+   The PDF panel on the left stays fixed at the row height and is
+   never pushed off-screen by content on the right. */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  height: var(--row-h);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+@media (max-width: 1024px) {
+  .right-column {
+    height: auto;
+    overflow: visible;
+  }
+}
+
+.card,
+.preview-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.card {
+  padding: 1rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- Preview panel ---------- */
+.preview-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.preview-toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.6rem 0.85rem;
+}
+
+.preview-title-block {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.preview-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-subtitle {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.preview-toolbar-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1rem;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  width: 32px;
+}
+
+.icon-btn:hover {
+  background: #f3f4f6;
+}
+
+.preview-frame {
+  flex: 1 1 auto;
+  min-height: 320px;
+  background: #525659;
+}
+
+.preview-iframe {
+  border: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.preview-empty {
+  align-items: center;
+  background: #fafafa;
+  color: var(--muted);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 320px;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* ---------- Detail card ---------- */
+.detail-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 0 0.85rem;
+}
+
+.meta div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.meta dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.meta dd {
+  color: var(--primary-ink);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: 'Courier New', monospace;
+}
+
+.status-badge {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+}
+
+.status-badge.pending {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.status-badge.in-review {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.status-badge.done {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #166534;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0.6rem;
+}
+
+.field span {
+  color: var(--primary-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.field textarea {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  min-height: 4.5rem;
+  padding: 0.5rem 0.65rem;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.8rem;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: var(--primary-ink);
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn-warning {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: var(--warning);
+}
+
+.reupload-btn {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.reupload-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---------- Timeline card ----------
+   The card flows naturally inside the scrollable right column, so we
+   no longer constrain its height; entries render in full and the
+   right column itself handles overflow. */
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comment-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+}
+
+.comment-meta {
+  align-items: baseline;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.comment-author {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.comment-role {
+  background: #f3f4f6;
+  border-radius: 999px;
+  color: #4b5563;
+  font-size: 0.65rem;
+  padding: 0.05rem 0.45rem;
+  text-transform: capitalize;
+}
+
+.comment-action {
+  color: #4b5563;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  margin: 0.2rem 0;
+  text-transform: uppercase;
+}
+
+.comment-action.revision {
+  color: var(--warning);
+}
+
+.comment-action.system {
+  color: var(--primary);
+}
+
+.comment-text {
+  color: var(--primary-ink);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+}
+
+.comment-time {
+  color: var(--muted);
+  font-size: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.comment-card.resolved {
+  background: #f8fafc;
+}
+
+.comment-card.resolved .comment-text {
+  color: #4b5563;
+}
+
+.resolve-pill {
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.resolve-pill.open {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.resolve-pill.done {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.comment-resolution {
+  color: #166534;
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
+}
+
+.comment-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+
+.btn-resolve {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #166534;
+  font-weight: 600;
+}

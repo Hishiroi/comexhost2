@@ -1,0 +1,99 @@
+<section class="dashboard">
+	<header class="dashboard-header">
+		<div>
+			<p class="eyebrow">Principal Console</p>
+			<h1>Welcome back, {{ userName }}</h1>
+			<p class="subtitle">
+				Review submissions, track revisions, and manage educator access across all levels.
+			</p>
+		</div>
+		<div class="summary">
+			<div class="summary-card">
+				<span class="summary-label">Pending Reviews</span>
+				<span class="summary-value">{{ pending }}</span>
+			</div>
+			<div class="summary-card">
+				<span class="summary-label">In Review</span>
+				<span class="summary-value">{{ inReview }}</span>
+			</div>
+			<div class="summary-card">
+				<span class="summary-label">Finalized</span>
+				<span class="summary-value">{{ finalized }}</span>
+			</div>
+		</div>
+	</header>
+
+	<p class="muted" *ngIf="loading()">Loading latest activity...</p>
+	<p class="error-banner" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+	<div class="grid">
+		<section class="card">
+			<h2>Principal Responsibilities</h2>
+			<ul class="checklist">
+				<li>Review and approve files from Teachers, Coord, and Master levels.</li>
+				<li>View PDF files with revision history and comments.</li>
+				<li>Confirm revision status and send feedback to lower levels.</li>
+				<li>Create lower-level accounts and manage user roles.</li>
+			</ul>
+			<button type="button" class="primary" (click)="goToAccounts()">Manage Accounts</button>
+		</section>
+
+		<section class="card wide">
+			<div class="card-header">
+				<h2>Recent Submissions</h2>
+				<a routerLink="/admin/document" class="link">See all &rarr;</a>
+			</div>
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Type</th>
+							<th>Title</th>
+							<th>Submitted by</th>
+							<th>Submitted on</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							*ngFor="let file of recent"
+							class="row"
+							tabindex="0"
+							(click)="open(file)"
+							(keydown.enter)="open(file)"
+							(keydown.space)="open(file)"
+						>
+							<td>#{{ file.id }}</td>
+							<td>
+								<span
+									class="doc-type"
+									[class.doc-type-dlp]="file.document_type !== 'examination'"
+									[class.doc-type-exam]="file.document_type === 'examination'"
+								>
+									{{ docTypeLabel(file.document_type, file.custom_type_label) }}
+								</span>
+							</td>
+							<td>{{ file.title }}</td>
+							<td>{{ file.uploaded_by.name }}</td>
+							<td>{{ file.created_at | date: 'mediumDate' }}</td>
+							<td>
+								<span
+									class="status"
+									[class.pending]="statusTone(file) === 'pending'"
+									[class.revision]="statusTone(file) === 'in-review'"
+									[class.approved]="statusTone(file) === 'done'"
+								>
+									{{ stageLabel(file) }}
+								</span>
+							</td>
+						</tr>
+						<tr *ngIf="!loading() && recent.length === 0">
+							<td colspan="6" class="muted">No submissions yet.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+</section>

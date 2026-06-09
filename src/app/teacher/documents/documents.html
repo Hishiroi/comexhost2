@@ -1,0 +1,112 @@
+<div class="content">
+  <main class="main" role="main">
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title">Documents</div>
+      </div>
+
+      <div class="list-toolbar" *ngIf="!loading() && !errorMessage()">
+        <label class="sr-only" for="teacher-doc-search">Search documents</label>
+        <input
+          id="teacher-doc-search"
+          type="search"
+          name="teacherDocSearch"
+          class="search-input"
+          [(ngModel)]="searchDraft"
+          (keydown.enter)="applySearch()"
+          placeholder="Search by ID, type, title, submitter, reviewers, status…"
+          autocomplete="off"
+        />
+        <button type="button" class="btn-search" (click)="applySearch()">Search</button>
+        <button type="button" class="btn-clear" *ngIf="appliedSearchNorm" (click)="clearSearch()">Clear</button>
+      </div>
+
+      <p class="muted-row" *ngIf="loading()">Loading documents...</p>
+      <p class="error-row" *ngIf="errorMessage() && !loading()">{{ errorMessage() }}</p>
+
+      <div class="table-wrap" role="region" aria-label="Documents table" *ngIf="!loading() && !errorMessage()">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>(transaction Number) ID</th>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Submitted By</th>
+              <th>Submitted On</th>
+              <th>Coord Checked</th>
+              <th>Status</th>
+              <th>Second review</th>
+              <th>Status</th>
+              <th>Final review</th>
+              <th>Status</th>
+              <th>Revisions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of displayRows"
+              class="row"
+              tabindex="0"
+              (click)="openDocument(row)"
+              (keydown.enter)="openDocument(row)"
+              (keydown.space)="openDocument(row)"
+            >
+              <td class="mono">{{ row.id }}</td>
+              <td>{{ row.documentTypeLabel }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ row.submittedBy }}</td>
+              <td>{{ row.submittedOn | date: 'mediumDate' }}</td>
+              <td>{{ row.coordChecked }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.pending]="row.coordStatus === 'Pending'"
+                  [class.revision]="row.coordStatus === 'For Revision'"
+                  [class.approved]="row.coordStatus === 'Checked'"
+                  [class.skipped]="row.coordStatus === 'Skipped'"
+                >
+                  {{ row.coordStatus === 'Skipped' ? 'N/A' : row.coordStatus }}
+                </span>
+              </td>
+              <td>
+                <span class="small-muted">{{ row.step2Header }}</span><br />
+                {{ row.step2Checked }}
+              </td>
+              <td>
+                <span
+                  class="status"
+                  [class.pending]="row.step2Status === 'Pending'"
+                  [class.revision]="row.step2Status === 'For Revision'"
+                  [class.approved]="row.step2Status === 'Checked'"
+                >
+                  {{ row.step2Status }}
+                </span>
+              </td>
+              <td>
+                <span class="small-muted">{{ row.step3Header }}</span><br />
+                {{ row.step3Checked }}
+              </td>
+              <td>
+                <span
+                  class="status"
+                  [class.pending]="row.step3Status === 'Pending'"
+                  [class.revision]="row.step3Status === 'For Revision'"
+                  [class.approved]="row.step3Status === 'Checked'"
+                >
+                  {{ row.step3Status }}
+                </span>
+              </td>
+              <td>{{ row.revisions }}</td>
+            </tr>
+            <tr *ngIf="rows.length === 0">
+              <td colspan="12" class="muted-row">You haven't submitted any documents yet.</td>
+            </tr>
+            <tr *ngIf="rows.length > 0 && displayRows.length === 0">
+              <td colspan="12" class="muted-row">No documents match your search.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,16 @@
+.app-header {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(76, 161, 163, 0.08);
+  box-shadow: 0 2px 12px rgba(76, 161, 163, 0.08);
+  color: #2c3e50;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-title {
+  color: #3a8c8e;
+  font-size: 18px;
+  font-weight: 600;
+}

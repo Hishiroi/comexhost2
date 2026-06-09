@@ -1,0 +1,15 @@
+<div class="history-wrap">
+  <header class="page-head">
+    <h1>Document History</h1>
+    <p>
+      Documents you have already reviewed or that have been finalized.
+      Click any row to re-open the read-only review interface.
+    </p>
+  </header>
+
+  <app-document-list
+    detailRoute="/coard/file"
+    [historyOnly]="true"
+    emptyMessage="No reviewed documents yet."
+  ></app-document-list>
+</div>

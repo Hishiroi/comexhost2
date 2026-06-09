@@ -1,0 +1,401 @@
+:host {
+	--ink: #1f2a2e;
+	--muted: #6b7280;
+	--line: #e5e7eb;
+	--card: #ffffff;
+	--accent: #0f766e;
+	--accent-soft: rgba(15, 118, 110, 0.1);
+	--shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+	display: block;
+	color: var(--ink);
+}
+
+.account-shell {
+	min-height: 100vh;
+	padding: 1.5rem 1.75rem 2rem;
+	background: transparent;
+}
+
+.account-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1.75rem;
+}
+
+.eyebrow {
+	text-transform: uppercase;
+	letter-spacing: 0.18em;
+	font-size: 0.7rem;
+	color: var(--accent);
+	margin-bottom: 0.35rem;
+}
+
+h1 {
+	font-size: 2rem;
+	margin: 0 0 0.4rem;
+}
+
+.subtitle {
+	color: var(--muted);
+	max-width: 480px;
+}
+
+.modal-hint {
+	color: var(--muted);
+	font-size: 0.875rem;
+	line-height: 1.45;
+	margin: 0 0 1rem;
+	max-width: 52rem;
+}
+
+.account-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+	gap: 1.5rem;
+}
+
+.card {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	padding: 1.5rem;
+	box-shadow: var(--shadow);
+}
+
+.account-form {
+	display: grid;
+	gap: 0.9rem;
+	margin-top: 1rem;
+}
+
+.modal .account-form {
+	grid-template-columns: 1fr 1fr;
+}
+
+.modal .account-form label:nth-child(n+5) {
+	grid-column: 1 / -1;
+}
+
+.account-form label {
+	display: grid;
+	gap: 0.35rem;
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+.account-form input,
+.account-form select {
+	padding: 0.65rem 0.75rem;
+	border-radius: 10px;
+	border: 1px solid var(--line);
+	font-size: 0.95rem;
+	background: #ffffff;
+}
+
+.account-form input[readonly] {
+	background: #f9fafb;
+	color: #374151;
+}
+
+.hint {
+	font-size: 0.75rem;
+	color: var(--muted);
+}
+
+.form-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	margin-top: 0.5rem;
+}
+
+button.primary,
+button.ghost {
+	border: none;
+	border-radius: 999px;
+	padding: 0.55rem 1.35rem;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+button.primary {
+	background: var(--accent);
+	color: #fff;
+}
+
+button.ghost {
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+.helper-card ul {
+	padding-left: 1.2rem;
+	color: var(--muted);
+	line-height: 1.7;
+}
+
+.status-callout {
+	margin-top: 1rem;
+	background: var(--accent-soft);
+	border-radius: 12px;
+	padding: 0.75rem 0.9rem;
+	color: var(--accent);
+	font-size: 0.85rem;
+}
+
+.status-callout span {
+	display: inline-block;
+	font-weight: 700;
+	margin-right: 0.4rem;
+}
+
+@media (max-width: 980px) {
+	.account-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.accounts-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 0.75rem;
+}
+
+.accounts-search-label {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--muted);
+}
+
+.accounts-search-input {
+	flex: 1;
+	min-width: 200px;
+	max-width: 360px;
+	padding: 0.55rem 0.75rem;
+	border-radius: 10px;
+	border: 1px solid var(--line);
+	font-size: 0.95rem;
+}
+
+.accounts-search-input:focus {
+	outline: 2px solid rgba(15, 118, 110, 0.35);
+	outline-offset: 1px;
+}
+
+.accounts-search-btn {
+	padding: 0.55rem 1.15rem;
+	border-radius: 10px;
+	border: none;
+	background: var(--accent);
+	color: #fff;
+	font-weight: 600;
+	font-size: 0.9rem;
+	cursor: pointer;
+}
+
+.accounts-search-btn:hover {
+	filter: brightness(1.05);
+}
+
+.accounts-clear-btn {
+	padding: 0.55rem 1rem;
+	border-radius: 10px;
+	border: 1px solid var(--line);
+	background: #fff;
+	color: var(--ink);
+	font-weight: 600;
+	font-size: 0.9rem;
+	cursor: pointer;
+}
+
+.accounts-clear-btn:hover {
+	background: #f9fafb;
+}
+
+.accounts-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 1rem;
+}
+
+.accounts-table thead {
+	background: var(--accent-soft);
+}
+
+.accounts-table th {
+	padding: 0.75rem 1rem;
+	text-align: left;
+	font-weight: 600;
+	color: var(--accent);
+	font-size: 0.85rem;
+	border-bottom: 2px solid var(--line);
+}
+
+.accounts-table td {
+	padding: 0.9rem 1rem;
+	border-bottom: 1px solid var(--line);
+	font-size: 0.9rem;
+}
+
+.accounts-table td.id {
+	font-weight: 600;
+	color: var(--accent);
+}
+
+.level-badge {
+	display: inline-block;
+	padding: 0.4rem 0.8rem;
+	border-radius: 999px;
+	font-weight: 500;
+	font-size: 0.8rem;
+}
+
+.level-badge.teacher {
+	background: #e0f2fe;
+	color: #0369a1;
+}
+
+.level-badge.coord {
+	background: #f0fdf4;
+	color: #15803d;
+}
+
+.level-badge.master {
+	background: #fef3c7;
+	color: #b45309;
+}
+
+.actions-cell {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.action-btn {
+	padding: 0.4rem 0.8rem;
+	border: none;
+	border-radius: 6px;
+	font-size: 0.8rem;
+	cursor: pointer;
+	font-weight: 500;
+}
+
+.action-btn.edit {
+	background: #eff6ff;
+	color: #0284c7;
+}
+
+.action-btn.delete {
+	background: #fef2f2;
+	color: #dc2626;
+}
+
+.action-btn:hover {
+	opacity: 0.8;
+}
+
+/* MatDialog account form — same section style as Profile edit */
+
+.form-section {
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	padding: 16px;
+	border-left: 4px solid #4ca1a3;
+	margin-bottom: 8px;
+}
+
+.form-section-title {
+	font-size: 16px;
+	font-weight: 500;
+	color: #4ca1a3;
+	margin: 0 0 12px;
+}
+
+.form-grid .checkbox-field {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	min-height: 2.75rem;
+	padding-top: 4px;
+}
+
+.field-tall.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+	padding-bottom: 2px;
+}
+
+@media (max-width: 720px) {
+	.account-shell {
+		padding: 1.25rem 1rem 2rem;
+	}
+
+	h1 {
+		font-size: 1.6rem;
+	}
+
+	.accounts-table {
+		font-size: 0.85rem;
+	}
+
+	.accounts-table th,
+	.accounts-table td {
+		padding: 0.6rem 0.8rem;
+	}
+
+	.header-actions-stack {
+		align-items: stretch;
+	}
+}
+
+.muted {
+	color: var(--muted);
+	font-size: 0.85rem;
+}
+
+.status-banner {
+	border-radius: 8px;
+	font-size: 0.9rem;
+	margin: 0 0 1rem;
+	padding: 0.6rem 0.85rem;
+}
+
+.status-banner.success {
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	color: #166534;
+}
+
+.status-banner.error {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #b91c1c;
+}
+
+.level-badge.principal {
+	background: rgba(124, 58, 237, 0.12);
+	color: #5b21b6;
+}
+
+.header-actions-stack {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 0.5rem;
+}
+
+.link-btn {
+	color: var(--accent);
+	font-weight: 600;
+	text-decoration: none;
+	font-size: 0.9rem;
+}
+
+.link-btn:hover {
+	text-decoration: underline;
+}
+
+button.primary.lg {
+	padding: 0.7rem 1.5rem;
+	font-size: 0.95rem;
+}

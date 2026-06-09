@@ -1,0 +1,76 @@
+<section class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">Teacher Workspace</p>
+      <h1>Welcome back, {{ userName }}</h1>
+      <p class="subtitle">Submit lesson plans and track them through Coordinator, Master, and Principal review.</p>
+    </div>
+    <div class="summary">
+      <div class="summary-card">
+        <span class="summary-label">My submissions</span>
+        <span class="summary-value">{{ total }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">In review</span>
+        <span class="summary-value">{{ pending }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Finalized</span>
+        <span class="summary-value">{{ finalized }}</span>
+      </div>
+    </div>
+  </header>
+
+  <p class="muted" *ngIf="loading()">Loading...</p>
+  <p class="error-banner" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <div class="quick">
+    <button type="button" class="primary" (click)="goToUpload()">+ Upload new document</button>
+    <a routerLink="/teacher/documents" class="link">View all my documents &rarr;</a>
+    <a routerLink="/profile" class="link">My profile</a>
+  </div>
+
+  <section class="card">
+    <h2>Recent submissions</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Submitted on</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let file of recent"
+            class="row"
+            tabindex="0"
+            (click)="open(file)"
+            (keydown.enter)="open(file)"
+            (keydown.space)="open(file)"
+          >
+            <td>#{{ file.id }}</td>
+            <td>{{ file.title }}</td>
+            <td>{{ file.created_at | date: 'mediumDate' }}</td>
+            <td>
+              <span
+                class="status"
+                [class.pending]="statusTone(file) === 'pending'"
+                [class.in-review]="statusTone(file) === 'in-review'"
+                [class.done]="statusTone(file) === 'done'"
+              >
+                {{ stageLabel(file) }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="!loading() && recent.length === 0">
+            <td colspan="4" class="muted">You haven't submitted anything yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

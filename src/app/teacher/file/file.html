@@ -1,0 +1,10 @@
+<div class="page-shell">
+  <header class="page-header">
+    <button type="button" class="back" (click)="backToDocuments()">&larr; Back to documents</button>
+    <h1>My Document</h1>
+  </header>
+
+  <p class="empty" *ngIf="fileId === null">Pick a document from your list to view its review status and comments.</p>
+
+  <app-file-review *ngIf="fileId !== null" [fileId]="fileId"></app-file-review>
+</div>

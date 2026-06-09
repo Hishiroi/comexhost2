@@ -1,0 +1,383 @@
+<div class="information-container">
+  <div class="header-actions">
+    <button
+      mat-icon-button
+      color="primary"
+      type="button"
+      (click)="goBack()"
+      matTooltip="Back to Home"
+    >
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="success-banner" role="status">{{ successMessage() }}</div>
+  }
+  @if (errorMessage() && !loading() && user()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-icon class="loading-icon">refresh</mat-icon>
+      <p>Loading profile information…</p>
+    </div>
+  }
+
+  @if (!loading() && errorMessage() && !user()) {
+    <div class="error-container">
+      <mat-icon color="warn">error</mat-icon>
+      <h2>Error</h2>
+      <p>{{ errorMessage() }}</p>
+      <button mat-raised-button color="primary" type="button" (click)="goBack()">Go Back</button>
+    </div>
+  }
+
+  @if (!loading() && user(); as u) {
+    <div class="student-header">
+      <div class="student-profile">
+        <div class="student-image" aria-hidden="true">
+          <mat-icon class="placeholder-avatar">person</mat-icon>
+        </div>
+        <div class="student-info">
+          <h1 class="student-name">{{ u.name }}</h1>
+          <div class="student-meta">
+            <div class="meta-item">
+              <mat-icon>email</mat-icon>
+              <span>{{ u.email }}</span>
+            </div>
+            <div class="meta-item">
+              <mat-icon>badge</mat-icon>
+              <span>{{ userLevelDisplay(u) }}</span>
+            </div>
+            @if (isTeacherRole(u) && u.teacher_rank != null && u.teacher_rank >= 1) {
+              <div class="meta-item">
+                <mat-icon>grading</mat-icon>
+                <span>Teacher level {{ u.teacher_rank }}</span>
+              </div>
+            }
+            @if (isCoordinatorRole(u) && u.teacher_rank != null && u.teacher_rank >= 1) {
+              <div class="meta-item">
+                <mat-icon>grading</mat-icon>
+                <span>Coordinator level {{ u.teacher_rank }}</span>
+              </div>
+            }
+            @if (isMasterRole(u) && u.teacher_rank != null && u.teacher_rank >= 1) {
+              <div class="meta-item">
+                <mat-icon>grading</mat-icon>
+                <span>Master level {{ u.teacher_rank }}</span>
+              </div>
+            }
+            @if (isCoordinatorOrMaster(u)) {
+              <div class="meta-item">
+                <mat-icon>layers</mat-icon>
+                <span>Role level {{ roleLevelNumber(u) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button mat-raised-button color="primary" type="button" (click)="openEditProfileModal()">
+          <mat-icon>edit</mat-icon>
+          Edit Profile
+        </button>
+      </div>
+    </div>
+
+    <mat-tab-group animationDuration="0ms" class="info-tabs">
+      <mat-tab label="Personal Information">
+        <div class="tab-content">
+          <mat-card>
+            <mat-card-content>
+              <div class="info-section">
+                <h2 class="section-title">Account</h2>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>person</mat-icon>
+                      <span>Full name</span>
+                    </div>
+                    <div class="info-value">{{ u.name }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>email</mat-icon>
+                      <span>Email</span>
+                    </div>
+                    <div class="info-value">{{ u.email }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>badge</mat-icon>
+                      <span>User level</span>
+                    </div>
+                    <div class="info-value">{{ userLevelDisplay(u) }}</div>
+                  </div>
+                  @if (isCoordinatorOrMaster(u)) {
+                    <div class="info-item">
+                      <div class="info-label">
+                        <mat-icon>layers</mat-icon>
+                        <span>Role level</span>
+                      </div>
+                      <div class="info-value">{{ roleLevelNumber(u) }}</div>
+                    </div>
+                  }
+                  @if (isTeacherRole(u) && u.teacher_rank != null && u.teacher_rank >= 1) {
+                    <div class="info-item">
+                      <div class="info-label">
+                        <mat-icon>grading</mat-icon>
+                        <span>Teacher level</span>
+                      </div>
+                      <div class="info-value">{{ u.teacher_rank }}</div>
+                    </div>
+                  }
+                  @if (isCoordinatorRole(u) && u.teacher_rank != null && u.teacher_rank >= 1) {
+                    <div class="info-item">
+                      <div class="info-label">
+                        <mat-icon>grading</mat-icon>
+                        <span>Coordinator level</span>
+                      </div>
+                      <div class="info-value">{{ u.teacher_rank }}</div>
+                    </div>
+                  }
+                  @if (isMasterRole(u) && u.teacher_rank != null && u.teacher_rank >= 1) {
+                    <div class="info-item">
+                      <div class="info-label">
+                        <mat-icon>grading</mat-icon>
+                        <span>Master level</span>
+                      </div>
+                      <div class="info-value">{{ u.teacher_rank }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-section">
+                <h2 class="section-title">Contact &amp; identity</h2>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>smartphone</mat-icon>
+                      <span>Mobile phone</span>
+                    </div>
+                    <div class="info-value">{{ u.mobile_phone || '—' }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>phone</mat-icon>
+                      <span>Telephone</span>
+                    </div>
+                    <div class="info-value">{{ u.telephone || '—' }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>flag</mat-icon>
+                      <span>Nationality</span>
+                    </div>
+                    <div class="info-value">{{ u.nationality || '—' }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>favorite</mat-icon>
+                      <span>Civil status</span>
+                    </div>
+                    <div class="info-value">{{ civilStatusLabel(u.civil_status) }}</div>
+                  </div>
+                  <div class="info-item full-span">
+                    <div class="info-label">
+                      <mat-icon>home</mat-icon>
+                      <span>Address</span>
+                    </div>
+                    <div class="info-value address-display">{{ u.address || '—' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-section">
+                <h2 class="section-title">Work details</h2>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>school</mat-icon>
+                      <span>Department / subject area</span>
+                    </div>
+                    <div class="info-value">{{ u.department_subject || '—' }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>pin</mat-icon>
+                      <span>Employee ID</span>
+                    </div>
+                    <div class="info-value">{{ u.employee_id || '—' }}</div>
+                  </div>
+                  <div class="info-item full-span">
+                    <div class="info-label">
+                      <mat-icon>meeting_room</mat-icon>
+                      <span>Office / room</span>
+                    </div>
+                    <div class="info-value">{{ u.office_room || '—' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-section">
+                <h2 class="section-title">Emergency contact</h2>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>person_pin</mat-icon>
+                      <span>Name</span>
+                    </div>
+                    <div class="info-value">{{ u.emergency_contact_name || '—' }}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>phone_in_talk</mat-icon>
+                      <span>Contact phone</span>
+                    </div>
+                    <div class="info-value">{{ u.emergency_contact_phone || '—' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="info-section">
+                <h2 class="section-title">Notes</h2>
+                <div class="info-grid single-col">
+                  <div class="info-item">
+                    <div class="info-label">
+                      <mat-icon>notes</mat-icon>
+                      <span>Additional details</span>
+                    </div>
+                    <div class="info-value pre-wrap">{{ u.notes_other || '—' }}</div>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>
+
+<!-- Edit profile — Material dialog (outline fields) -->
+<ng-template #editProfileModal>
+  <h2 mat-dialog-title class="modal-title-dialog">Edit profile</h2>
+  @if (dialogError()) {
+    <div class="dialog-inline-error" role="alert">{{ dialogError() }}</div>
+  }
+  <mat-dialog-content class="edit-modal-dialog">
+    <form [formGroup]="editForm" id="profileEditForm" (ngSubmit)="submitEditModal()">
+      <div class="form-section">
+        <h3 class="form-section-title">Contact &amp; identity</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Mobile phone</mat-label>
+            <input matInput formControlName="mobile_phone" autocomplete="tel" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Telephone</mat-label>
+            <input matInput formControlName="telephone" autocomplete="tel" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Nationality</mat-label>
+            <input matInput formControlName="nationality" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Civil status</mat-label>
+            <mat-select formControlName="civil_status" panelClass="comex-profile-select-panel">
+              <mat-option value="">Clear</mat-option>
+              @for (opt of civilStatusOptions; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="field-tall address-field grid-span-2"
+          >
+            <mat-label>Address</mat-label>
+            <textarea matInput formControlName="address" rows="2"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">Work details</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Department / subject area</mat-label>
+            <input matInput formControlName="department_subject" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Employee ID</mat-label>
+            <input matInput formControlName="employee_id" />
+          </mat-form-field>
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="field-tall grid-span-2"
+          >
+            <mat-label>Office / room</mat-label>
+            <input matInput formControlName="office_room" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">Emergency contact</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Contact name</mat-label>
+            <input matInput formControlName="emergency_contact_name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+            <mat-label>Contact phone</mat-label>
+            <input matInput formControlName="emergency_contact_phone" autocomplete="tel" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="form-section-title">Notes</h3>
+        <div class="form-grid">
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="field-tall notes-field grid-span-2"
+          >
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes_other" rows="2"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end" class="dialog-actions-bar">
+    <button mat-button type="button" (click)="cancelEditModal()">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      form="profileEditForm"
+      [disabled]="saving()"
+    >
+      @if (saving()) {
+        Saving…
+      } @else {
+        Save changes
+      }
+    </button>
+  </mat-dialog-actions>
+</ng-template>

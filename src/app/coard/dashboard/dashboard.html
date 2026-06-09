@@ -1,0 +1,70 @@
+<section class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">Coordinator Console</p>
+      <h1>Welcome back, {{ userName }}</h1>
+      <p class="subtitle">Review files submitted by teachers and forward them to the Master.</p>
+    </div>
+    <div class="summary">
+      <div class="summary-card">
+        <span class="summary-label">Awaiting your review</span>
+        <span class="summary-value">{{ awaitingMe }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Visible documents</span>
+        <span class="summary-value">{{ total }}</span>
+      </div>
+    </div>
+  </header>
+
+  <p class="muted" *ngIf="loading()">Loading queue...</p>
+  <p class="error-banner" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+  <section class="card wide">
+    <div class="card-header">
+      <h2>Your Review Queue</h2>
+      <a routerLink="/coard/document" class="link">All documents &rarr;</a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Submitted by</th>
+            <th>Submitted on</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let file of queue"
+            class="row"
+            tabindex="0"
+            (click)="open(file)"
+            (keydown.enter)="open(file)"
+            (keydown.space)="open(file)"
+          >
+            <td>#{{ file.id }}</td>
+            <td>
+              <span
+                class="doc-type"
+                [class.doc-type-dlp]="file.document_type !== 'examination'"
+                [class.doc-type-exam]="file.document_type === 'examination'"
+              >
+                {{ docTypeLabel(file.document_type, file.custom_type_label) }}
+              </span>
+            </td>
+            <td>{{ file.title }}</td>
+            <td>{{ file.uploaded_by.name }}</td>
+            <td>{{ file.created_at | date: 'mediumDate' }}</td>
+          </tr>
+          <tr *ngIf="!loading() && queue.length === 0">
+            <td colspan="5" class="muted">Nothing waiting for you right now.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,263 @@
+<div class="review-page" [class.fullscreen]="fullscreen()">
+  <div class="banner error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+  <div class="banner success" *ngIf="successMessage()">{{ successMessage() }}</div>
+  <p class="muted" *ngIf="loading() && !file">Loading document...</p>
+
+  <div class="review-grid" *ngIf="file as f">
+    <!-- LEFT: PDF preview -->
+    <section class="preview-panel" aria-label="Document preview">
+      <div class="preview-toolbar">
+        <div class="preview-title-block">
+          <div class="preview-title">{{ f.original_name }}</div>
+          <div class="preview-subtitle">
+            Transaction #{{ f.id }} &middot; Submitted by
+            <strong>{{ f.uploaded_by.name }}</strong>
+          </div>
+        </div>
+        <div class="preview-toolbar-actions">
+          <button
+            type="button"
+            class="icon-btn"
+            (click)="download()"
+            title="Download PDF"
+            aria-label="Download PDF"
+          >
+            &darr;
+          </button>
+          <button
+            type="button"
+            class="icon-btn"
+            (click)="toggleFullscreen()"
+            [title]="fullscreen() ? 'Exit fullscreen' : 'Open fullscreen'"
+            [attr.aria-label]="fullscreen() ? 'Exit fullscreen' : 'Open fullscreen'"
+          >
+            {{ fullscreen() ? '×' : '⛶' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-frame" *ngIf="pdfUrl as src; else noPreview">
+        <iframe
+          class="preview-iframe"
+          [src]="src"
+          title="PDF preview"
+          loading="eager"
+        ></iframe>
+      </div>
+      <ng-template #noPreview>
+        <div class="preview-empty">
+          <p *ngIf="pdfLoading()">Loading PDF preview...</p>
+          <ng-container *ngIf="!pdfLoading()">
+            <p>PDF preview unavailable.</p>
+            <p class="small muted">{{ pdfError() || 'The document could not be displayed inline.' }}</p>
+            <button type="button" class="btn btn-secondary" (click)="retryPdf()">
+              Retry
+            </button>
+          </ng-container>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- RIGHT: details + timeline stacked -->
+    <div class="right-column">
+      <section class="card detail-card" aria-label="Document details">
+        <div class="card-title">Document detail</div>
+
+        <dl class="meta">
+          <div>
+            <dt>Transaction</dt>
+            <dd class="mono">#{{ f.id }}</dd>
+          </div>
+          <div>
+            <dt>Title</dt>
+            <dd>{{ f.title }}</dd>
+          </div>
+          <div *ngIf="f.description">
+            <dt>Description</dt>
+            <dd>{{ f.description }}</dd>
+          </div>
+          <div *ngIf="f.document_type === 'custom' && f.custom_type_label">
+            <dt>Custom type</dt>
+            <dd>{{ f.custom_type_label }}</dd>
+          </div>
+          <div *ngIf="f.document_type === 'custom'">
+            <dt>Reviewer path</dt>
+            <dd>{{ customStopsLabel(f) }}</dd>
+          </div>
+          <div *ngIf="f.more_details">
+            <dt>Additional notes</dt>
+            <dd style="white-space: pre-wrap">{{ f.more_details }}</dd>
+          </div>
+          <div>
+            <dt>File</dt>
+            <dd class="ellipsis">{{ f.original_name }}</dd>
+          </div>
+          <div>
+            <dt>Submitted by</dt>
+            <dd>{{ f.uploaded_by.name }}</dd>
+          </div>
+          <div>
+            <dt>Document type</dt>
+            <dd>{{ docTypeLabel(f.document_type, f.custom_type_label) }}</dd>
+          </div>
+          <div>
+            <dt>Submitted on</dt>
+            <dd>{{ f.created_at | date: 'longDate' }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>
+              <span
+                class="status-badge"
+                [class.pending]="statusTone(f) === 'pending'"
+                [class.in-review]="statusTone(f) === 'in-review'"
+                [class.done]="statusTone(f) === 'done'"
+              >
+                {{ stageLabel(f) }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+
+        <div
+          class="banner warning"
+          *ngIf="(canForward || canFinalize) && hasUnresolvedRevisionsForActor"
+        >
+          {{ canFinalize ? 'Finalizing' : 'Forwarding' }} is blocked:
+          {{ unresolvedRevisionsForActor.length }} unresolved revision<span
+            *ngIf="unresolvedRevisionsForActor.length !== 1"
+            >s</span
+          >
+          you created on this document. Resolve them first.
+        </div>
+
+        <div class="banner warning" *ngIf="canReupload">
+          A reviewer has marked this document for revision. Upload a corrected
+          PDF to replace the current file. The transaction number stays the
+          same; open revision requests will be cleared and the file stays at
+          the current review stage.
+        </div>
+
+        <div class="action-row" *ngIf="canReupload">
+          <label class="btn btn-primary reupload-btn" [class.disabled]="acting()">
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              hidden
+              [disabled]="acting()"
+              (change)="onReuploadFile($event)"
+            />
+            {{ acting() ? 'Uploading...' : 'Re-upload PDF' }}
+          </label>
+        </div>
+
+        <ng-container *ngIf="canComment || canForward || canFinalize">
+          <label class="field">
+            <span>Add comment / revision note</span>
+            <textarea
+              rows="3"
+              placeholder="Type your note for the next reviewer..."
+              [(ngModel)]="commentBody"
+              [disabled]="acting()"
+            ></textarea>
+          </label>
+
+          <div class="actions">
+            <button
+              *ngIf="canComment"
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="acting()"
+              (click)="postComment()"
+            >
+              Post comment
+            </button>
+            <button
+              *ngIf="canComment"
+              type="button"
+              class="btn btn-warning"
+              [disabled]="acting()"
+              (click)="postRevision()"
+            >
+              Mark for revision
+            </button>
+            <button
+              *ngIf="canForward"
+              type="button"
+              class="btn btn-primary"
+              [disabled]="acting() || hasUnresolvedRevisionsForActor"
+              [title]="hasUnresolvedRevisionsForActor ? 'Resolve your open revision requests first' : ''"
+              (click)="forward()"
+            >
+              {{ forwardButtonLabel }}
+            </button>
+            <button
+              *ngIf="canFinalize"
+              type="button"
+              class="btn btn-primary"
+              [disabled]="acting() || hasUnresolvedRevisionsForActor"
+              [title]="hasUnresolvedRevisionsForActor ? 'Resolve your open revision requests first' : ''"
+              (click)="finalize()"
+            >
+              Finalize
+            </button>
+          </div>
+        </ng-container>
+
+        <p class="muted small" *ngIf="!canComment && !canForward && !canFinalize">
+          This document is not currently at your review stage.
+        </p>
+      </section>
+
+      <aside class="card timeline-card" aria-label="Comments timeline">
+        <div class="card-title">Timeline</div>
+        <div class="timeline-scroll">
+          <div
+            class="comment-card"
+            *ngFor="let c of comments"
+            [class.resolved]="c.action === 'revision' && c.resolved_at"
+          >
+            <div class="comment-meta">
+              <span class="comment-author">{{ c.user.name }}</span>
+              <span class="comment-role">{{ c.role }}</span>
+            </div>
+            <div
+              class="comment-action"
+              [class.revision]="c.action === 'revision'"
+              [class.system]="c.action === 'forward' || c.action === 'finalize'"
+            >
+              {{ c.action }}
+              <span
+                class="resolve-pill"
+                *ngIf="c.action === 'revision'"
+                [class.open]="!c.resolved_at"
+                [class.done]="c.resolved_at"
+              >
+                {{ c.resolved_at ? 'resolved' : 'open' }}
+              </span>
+            </div>
+            <div class="comment-text" *ngIf="c.body">{{ c.body }}</div>
+            <div class="comment-time">{{ c.created_at | date: 'short' }}</div>
+
+            <div class="comment-resolution" *ngIf="c.resolved_at">
+              Resolved by <strong>{{ c.resolved_by?.name || 'a reviewer' }}</strong>
+              on {{ c.resolved_at | date: 'short' }}.
+            </div>
+
+            <div class="comment-action-row" *ngIf="canResolve(c)">
+              <button
+                type="button"
+                class="btn btn-resolve"
+                [disabled]="resolvingId() === c.id"
+                (click)="resolveComment(c)"
+              >
+                {{ resolvingId() === c.id ? 'Resolving...' : 'Resolve' }}
+              </button>
+            </div>
+          </div>
+          <p class="muted" *ngIf="comments.length === 0">No timeline entries yet.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.page-shell {
+  padding: 1rem 1.25rem 0;
+}
+
+.page-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.back {
+  background: transparent;
+  border: 0;
+  color: #354f52;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  background: #fff;
+  border: 1px dashed #e6e6e6;
+  border-radius: 10px;
+  color: #6b7280;
+  margin: 1.25rem;
+  padding: 1.5rem;
+  text-align: center;
+}

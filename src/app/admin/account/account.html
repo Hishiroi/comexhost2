@@ -1,0 +1,422 @@
+<section class="account-shell">
+
+  <header class="account-header">
+
+    <div>
+
+      <p class="eyebrow">Principal Tools</p>
+
+      <h1>Manage Accounts</h1>
+
+      <p class="subtitle">
+        Create and manage <strong>account</strong> records for Teachers, Coordinators, and Masters (name, email,
+        password, role, and a numeric <strong>1–7 skill level</strong> for Teachers, Coordinators, and Masters).
+        Teachers must use Gmail (@gmail.com). Users in those roles maintain their own contact and profile details on
+        the
+        <strong>Profile</strong> page.
+      </p>
+    </div>
+
+    <div class="header-actions-stack">
+      <button type="button" class="primary lg" (click)="openCreateModal()">+ Create New Account</button>
+
+    </div>
+
+  </header>
+
+
+
+  <div class="status-banner success" *ngIf="successMessage()">{{ successMessage() }}</div>
+
+  <div class="status-banner error" *ngIf="errorMessage() && !modalMode">{{ errorMessage() }}</div>
+
+
+
+  <section class="card">
+
+    <h2>Accounts</h2>
+
+    <div class="accounts-toolbar" *ngIf="!loading()">
+      <label class="accounts-search-label" for="accounts-search-input">Search</label>
+      <input
+        id="accounts-search-input"
+        type="search"
+        name="accountsSearch"
+        class="accounts-search-input"
+        [(ngModel)]="accountSearchDraft"
+        (keydown.enter)="applyAccountSearch()"
+        placeholder="ID, email, name, role, skill…"
+        autocomplete="off"
+      />
+      <button type="button" class="accounts-search-btn" (click)="applyAccountSearch()">Search</button>
+      <button type="button" class="accounts-clear-btn" *ngIf="appliedAccountSearchNorm" (click)="clearAccountSearch()">Clear</button>
+    </div>
+
+
+
+    <p class="muted" *ngIf="loading()">Loading accounts...</p>
+
+
+
+    <table class="accounts-table" *ngIf="!loading()">
+
+      <thead>
+
+        <tr>
+
+          <th>ID</th>
+
+          <th>Email</th>
+
+          <th>Name</th>
+
+          <th>User level</th>
+
+          <th>Skill level (1–7)</th>
+
+          <th>Actions</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let account of filteredAccounts">
+
+          <td class="id">{{ account.id }}</td>
+
+          <td>{{ account.email }}</td>
+
+          <td>{{ account.name }}</td>
+
+          <td>
+
+            <span
+
+              class="level-badge"
+
+              [ngClass]="account.userLevel === 'Principal' ? 'principal' : account.userLevel.toLowerCase()"
+
+            >
+
+              {{ account.userLevel }}
+
+            </span>
+
+          </td>
+
+          <td>{{ accountLevelDisplay(account) }}</td>
+
+          <td class="actions-cell">
+
+            <button
+
+              type="button"
+
+              class="action-btn edit"
+
+              [disabled]="!canEdit(account)"
+
+              (click)="openEditModal(account)"
+
+            >
+
+              Edit
+
+            </button>
+
+            <button
+
+              type="button"
+
+              class="action-btn delete"
+
+              [disabled]="!canDelete(account)"
+
+              (click)="confirmDelete(account)"
+
+            >
+
+              Delete
+
+            </button>
+
+          </td>
+
+        </tr>
+
+        <tr *ngIf="accounts.length === 0">
+          <td colspan="6" class="muted">No accounts yet.</td>
+        </tr>
+        <tr *ngIf="accounts.length > 0 && filteredAccounts.length === 0">
+          <td colspan="6" class="muted">No accounts match your search.</td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </section>
+
+</section>
+
+<!-- Shared shell/styles with Profile edit modal (`comex-profile-edit-dialog-panel`) -->
+
+<ng-template #accountModal>
+
+  <div class="account-dialog-heading">
+
+    <h2 mat-dialog-title class="modal-title-dialog">{{
+
+      modalMode === 'create' ? 'Create New Account' : 'Edit Account'
+
+    }}</h2>
+
+    <button type="button" mat-icon-button mat-dialog-close aria-label="Close">
+
+      <mat-icon>close</mat-icon>
+
+    </button>
+
+  </div>
+
+
+
+  @if (errorMessage()) {
+
+    <div class="dialog-inline-error" role="alert">{{ errorMessage() }}</div>
+
+  }
+
+
+
+  <mat-dialog-content class="edit-modal-dialog">
+
+    <form id="accountModalForm" (ngSubmit)="submitModal()">
+
+      <div class="form-section">
+
+        <h3 class="form-section-title">Account</h3>
+
+        <p class="modal-hint" *ngIf="!isEditingPrincipalSelf">
+
+          Profile fields (phone, address, etc.) are not edited here — users update them on their Profile page.
+
+        </p>
+
+
+
+        <div class="form-grid">
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+
+            <mat-label>
+
+              Email
+
+              {{ formData.userLevel === 'Teacher' && !isEditingPrincipalSelf ? '(Gmail)' : '' }}
+
+            </mat-label>
+
+            <input
+
+              matInput
+
+              type="email"
+
+              [(ngModel)]="formData.email"
+
+              name="email"
+
+              [disabled]="submitting()"
+
+              required
+
+              autocomplete="off"
+
+            />
+
+            <mat-hint *ngIf="formData.userLevel === 'Teacher' && !isEditingPrincipalSelf"
+              >Teachers must use &#64;gmail.com</mat-hint>
+
+          </mat-form-field>
+
+
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall">
+
+            <mat-label>Full name</mat-label>
+
+            <input matInput type="text" [(ngModel)]="formData.name" name="name" [disabled]="submitting()" required />
+
+          </mat-form-field>
+
+
+
+          <mat-form-field
+
+            appearance="outline"
+
+            subscriptSizing="dynamic"
+
+            class="field-tall"
+
+            [class.grid-span-2]="isEditingPrincipalSelf"
+
+          >
+
+            <mat-label>{{
+
+              modalMode === 'create' ? 'Initial password' : 'New password (leave blank to keep current)'
+
+            }}</mat-label>
+
+            <input
+
+              matInput
+
+              type="text"
+
+              [(ngModel)]="formData.password"
+
+              name="password"
+
+              [required]="modalMode === 'create'"
+
+              [disabled]="submitting()"
+
+              spellcheck="false"
+
+              autocomplete="off"
+
+            />
+
+          </mat-form-field>
+
+
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall" *ngIf="!isEditingPrincipalSelf">
+
+            <mat-label>User level</mat-label>
+
+            <mat-select
+
+              [(ngModel)]="formData.userLevel"
+
+              name="userLevel"
+
+              [disabled]="submitting()"
+
+              panelClass="comex-profile-select-panel"
+
+            >
+
+              <mat-option value="Teacher">Teacher</mat-option>
+
+              <mat-option value="Coordinator">Coordinator</mat-option>
+
+              <mat-option value="Master">Master</mat-option>
+
+            </mat-select>
+
+          </mat-form-field>
+
+
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-tall" *ngIf="isEditingPrincipalSelf">
+
+            <mat-label>User level</mat-label>
+
+            <input matInput value="Principal" readonly />
+
+          </mat-form-field>
+
+
+
+          <mat-form-field
+
+            appearance="outline"
+
+            subscriptSizing="dynamic"
+
+            class="field-tall"
+
+            *ngIf="showRankLevel() && !isEditingPrincipalSelf"
+
+          >
+
+            <mat-label>{{ rankSelectLabel() }}</mat-label>
+
+            <mat-select
+
+              [(ngModel)]="formData.teacher_level"
+
+              name="teacher_level"
+
+              [disabled]="submitting()"
+
+              panelClass="comex-profile-select-panel"
+
+            >
+
+              <mat-option *ngFor="let r of teacherLevels" [value]="r">{{ r }}</mat-option>
+
+            </mat-select>
+
+          </mat-form-field>
+
+
+
+          <div class="checkbox-field" *ngIf="modalMode === 'edit' && !isEditingPrincipalSelf">
+
+            <mat-checkbox
+
+              [(ngModel)]="formData.is_active"
+
+              name="is_active"
+
+              color="primary"
+
+              [disabled]="submitting()"
+
+            >Account active</mat-checkbox>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </form>
+
+  </mat-dialog-content>
+
+
+
+  <mat-dialog-actions align="end" class="dialog-actions-bar">
+
+    <button mat-button type="button" (click)="closeModal()" [disabled]="submitting()">Cancel</button>
+
+    <button
+
+      mat-raised-button
+
+      color="primary"
+
+      type="submit"
+
+      form="accountModalForm"
+
+      [disabled]="submitting()"
+
+    >
+
+      {{ submitting() ? 'Saving…' : modalMode === 'create' ? 'Create Account' : 'Save changes' }}
+
+    </button>
+
+  </mat-dialog-actions>
+
+</ng-template>
+

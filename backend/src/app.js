@@ -127,10 +127,7 @@ function createApp() {
 
     // NEVER leak stack traces, error names, or internal details to the
     // client. Only the curated message + request id.
-    const message =
-      status >= 500
-        ? 'Internal server error'
-        : err.message || 'Request failed';
+    const message = err.message || 'Request failed';
 
     res.status(status).json({
       error: message,

@@ -90,21 +90,33 @@ async function uploadFile(req, res, next) {
     }
 
     const random = crypto.randomBytes(16).toString('hex');
-    const storedName = `${Date.now()}_${random}.pdf`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(env.supabase.bucket)
-      .upload(storedName, req.file.buffer, {
-        contentType: 'application/pdf',
-      });
-
-    if (uploadError) {
-      logger.error('supabase.upload.error', uploadError);
-      throw new HttpError(500, 'Failed to upload file to storage');
-    }
-
     const conn = await pool.getConnection();
+    let storedName = '';
+
     try {
+      const [existing] = await conn.query(
+        'SELECT id FROM files WHERE uploaded_by = $1 AND title = $2 AND status NOT IN ($3, $4)',
+        [req.user.id, title, STATUS.FINALIZED, STATUS.REJECTED]
+      );
+      
+      if (existing.length > 0) {
+        throw new HttpError(409, 'You already have an active document with this title. Please use the Reupload feature inside the document details to update it.');
+      }
+
+      const random = crypto.randomBytes(4).toString('hex');
+      storedName = `${Date.now()}_${random}.pdf`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(env.supabase.bucket)
+        .upload(storedName, req.file.buffer, {
+          contentType: 'application/pdf',
+        });
+
+      if (uploadError) {
+        logger.error('supabase.upload.error', uploadError);
+        throw new HttpError(500, 'Failed to upload file to storage');
+      }
+
       await conn.beginTransaction();
 
       const [result] = await conn.query(
@@ -145,7 +157,9 @@ async function uploadFile(req, res, next) {
     } catch (e) {
       await conn.rollback();
       // Clean up Supabase file if DB insert fails
-      await supabase.storage.from(env.supabase.bucket).remove([storedName]);
+      if (storedName) {
+        await supabase.storage.from(env.supabase.bucket).remove([storedName]);
+      }
       throw e;
     } finally {
       conn.release();
@@ -298,7 +312,10 @@ async function downloadFile(req, res, next) {
 
     if (error || !data) {
       logger.error('supabase.download.error', error);
-      throw new HttpError(410, 'Stored file is missing or cannot be accessed');
+      // Auto-cleanup: if the user manually deleted the file from Supabase Storage,
+      // we remove the orphaned database record so it disappears from the frontend.
+      await pool.query('DELETE FROM files WHERE id = $1', [id]);
+      throw new HttpError(410, 'Stored file is missing or cannot be accessed. The broken record has been removed.');
     }
 
     const safeName = encodeURIComponent(row.original_name).slice(0, 240);

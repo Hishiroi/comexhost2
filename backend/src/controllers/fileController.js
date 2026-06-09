@@ -7,6 +7,7 @@ const env = require('../config/env');
 const HttpError = require('../utils/httpError');
 const { ROLES, roleName } = require('../utils/roles');
 const { STATUS } = require('../utils/status');
+const { parseAndNormalizeCustomStops } = require('../utils/customStops');
 const {
   requireString,
   optionalString,
@@ -29,6 +30,9 @@ function visibilityClause(user, startIndex = 1) {
     case ROLES.TEACHER:
       return { sql: `f.uploaded_by = $${startIndex}`, params: [user.id] };
     case ROLES.COORDINATOR:
+      // Coordinators see all documents that have reached their level or beyond.
+      // They can VIEW DLP documents (read-only) but cannot act on them since
+      // canActOnFile enforces current_level === role_level.
       return { sql: `f.current_level >= $${startIndex}`, params: [ROLES.COORDINATOR] };
     case ROLES.MASTER:
       return { sql: `f.current_level >= $${startIndex}`, params: [ROLES.MASTER] };
@@ -50,6 +54,10 @@ function shapeFile(row) {
     current_level: row.current_level,
     current_role: roleName(row.current_level),
     status: row.status,
+    document_type: row.document_type,
+    more_details: row.more_details,
+    custom_type_label: row.custom_type_label,
+    custom_stops: row.custom_stops,
     uploaded_by: {
       id: row.uploaded_by,
       name: row.uploader_name,
@@ -63,6 +71,7 @@ function shapeFile(row) {
 const FILE_SELECT = `
   SELECT f.id, f.title, f.description, f.original_name, f.stored_name,
          f.mime_type, f.size_bytes, f.current_level, f.status,
+         f.document_type, f.more_details, f.custom_type_label, f.custom_stops,
          f.uploaded_by, f.created_at, f.updated_at,
          u.name  AS uploader_name,
          u.email AS uploader_email
@@ -91,7 +100,15 @@ async function uploadFile(req, res, next) {
       documentType = req.body.document_type || 'dlp';
       moreDetails = optionalString(req.body && req.body.more_details, 'more_details', { max: 4000 });
       customTypeLabel = optionalString(req.body && req.body.custom_type_label, 'custom_type_label', { max: 255 });
-      if (req.body.custom_stops) {
+
+      // If a custom type label is set, enforce document_type = 'custom'
+      // and properly validate custom_stops using the shared utility.
+      if (customTypeLabel && customTypeLabel.trim()) {
+        documentType = 'custom';
+        const stops = parseAndNormalizeCustomStops(req.body);
+        customStops = JSON.stringify(stops);
+      } else if (req.body.custom_stops) {
+        // No custom label but stops sent: still parse and validate
         try {
           const arr = JSON.parse(req.body.custom_stops);
           if (Array.isArray(arr)) customStops = JSON.stringify(arr);
@@ -111,22 +128,23 @@ async function uploadFile(req, res, next) {
       }
     }
 
-    const random = crypto.randomBytes(16).toString('hex');
     const conn = await pool.getConnection();
     let storedName = '';
 
     try {
+      await conn.beginTransaction();
+
       const [existing] = await conn.query(
         'SELECT id FROM files WHERE uploaded_by = $1 AND title = $2 AND status NOT IN ($3, $4)',
-        [req.user.id, title, STATUS.FINALIZED, STATUS.REJECTED]
+        [req.user.id, title, STATUS.FINALIZED, STATUS.RETURNED]
       );
       
       if (existing.length > 0) {
         throw new HttpError(409, 'You already have an active document with this title. Please use the Reupload feature inside the document details to update it.');
       }
 
-      const random = crypto.randomBytes(4).toString('hex');
-      storedName = `${Date.now()}_${random}.pdf`;
+      const storedRandom = crypto.randomBytes(4).toString('hex');
+      storedName = `${Date.now()}_${storedRandom}.pdf`;
 
       const { error: uploadError } = await supabase.storage
         .from(env.supabase.bucket)
@@ -138,8 +156,6 @@ async function uploadFile(req, res, next) {
         logger.error('supabase.upload.error', uploadError);
         throw new HttpError(500, 'Failed to upload file to storage');
       }
-
-      await conn.beginTransaction();
 
       const [result] = await conn.query(
         `INSERT INTO files
@@ -384,7 +400,7 @@ async function reuploadFile(req, res, next) {
       await conn.beginTransaction();
 
       const [rows] = await conn.query(
-        `SELECT id, uploaded_by, stored_name, status
+        `SELECT id, uploaded_by, stored_name, status, document_type, custom_stops
            FROM files WHERE id = $1 FOR UPDATE`,
         [id]
       );
@@ -434,6 +450,19 @@ async function reuploadFile(req, res, next) {
         throw new HttpError(500, 'Failed to upload new file to storage');
       }
 
+      // Compute the correct reset level based on document type
+      let resetLevel = ROLES.MASTER; // DLP: starts at Master
+      if (file.document_type === 'examination') {
+        resetLevel = ROLES.COORDINATOR;
+      } else if (file.document_type === 'custom' && file.custom_stops) {
+        try {
+          const stops = typeof file.custom_stops === 'string'
+            ? JSON.parse(file.custom_stops)
+            : (Array.isArray(file.custom_stops) ? file.custom_stops : null);
+          if (Array.isArray(stops) && stops.length > 0) resetLevel = stops[0];
+        } catch (_) { /* keep default */ }
+      }
+
       await conn.query(
         `UPDATE files
             SET original_name = $1,
@@ -447,7 +476,7 @@ async function reuploadFile(req, res, next) {
           req.file.originalname.slice(0, 255),
           newStored,
           req.file.size,
-          ROLES.COORDINATOR,
+          resetLevel,
           STATUS.UPLOADED,
           file.id,
         ]

@@ -144,7 +144,7 @@ export class Upload implements OnDestroy {
           this.selectedFile,
           this.title.trim(),
           this.description.trim() || undefined,
-          'dlp',
+          'custom',
           extra,
           customLabel,
           stops

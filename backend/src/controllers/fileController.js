@@ -80,13 +80,35 @@ async function uploadFile(req, res, next) {
 
     let title;
     let description;
+    let documentType;
+    let moreDetails;
+    let customTypeLabel;
+    let customStops = null;
+
     try {
       title = requireString(req.body && req.body.title, 'title', { min: 2, max: 255 });
-      description = optionalString(req.body && req.body.description, 'description', {
-        max: 4000,
-      });
+      description = optionalString(req.body && req.body.description, 'description', { max: 4000 });
+      documentType = req.body.document_type || 'dlp';
+      moreDetails = optionalString(req.body && req.body.more_details, 'more_details', { max: 4000 });
+      customTypeLabel = optionalString(req.body && req.body.custom_type_label, 'custom_type_label', { max: 255 });
+      if (req.body.custom_stops) {
+        try {
+          const arr = JSON.parse(req.body.custom_stops);
+          if (Array.isArray(arr)) customStops = JSON.stringify(arr);
+        } catch (e) {}
+      }
     } catch (e) {
       throw e;
+    }
+
+    let initialLevel = ROLES.MASTER; // DLP defaults to Master
+    if (documentType === 'examination') {
+      initialLevel = ROLES.COORDINATOR; // Exam starts at Coordinator
+    } else if (documentType === 'custom') {
+      if (customStops) {
+        const arr = JSON.parse(customStops);
+        if (arr.length > 0) initialLevel = arr[0];
+      }
     }
 
     const random = crypto.randomBytes(16).toString('hex');
@@ -122,8 +144,8 @@ async function uploadFile(req, res, next) {
       const [result] = await conn.query(
         `INSERT INTO files
           (uploaded_by, title, description, original_name, stored_name,
-           mime_type, size_bytes, current_level, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+           mime_type, size_bytes, current_level, status, document_type, more_details, custom_type_label, custom_stops)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
         [
           req.user.id,
           title,
@@ -132,8 +154,12 @@ async function uploadFile(req, res, next) {
           storedName,
           'application/pdf',
           req.file.size,
-          ROLES.COORDINATOR,
+          initialLevel,
           STATUS.UPLOADED,
+          documentType,
+          moreDetails,
+          customTypeLabel,
+          customStops,
         ]
       );
 

@@ -90,6 +90,19 @@ export class FileReview implements OnChanges, OnDestroy {
 
   commentBody = '';
 
+  // ── Reupload form state ───────────────────────────────────────────────
+  /** Whether the reupload inline form is expanded. */
+  reuploadExpanded = false;
+  reuploadDocType: 'dlp' | 'examination' | 'custom' = 'dlp';
+  reuploadCustomMode = false;
+  reuploadCustomLabel = '';
+  reuploadPickCoordinator = false;
+  reuploadPickMaster = false;
+  reuploadPickPrincipal = false;
+  reuploadDescription = '';
+  reuploadMoreDetails = '';
+  // ─────────────────────────────────────────────────────────────────────
+
   ngOnChanges(changes: SimpleChanges): void {
     if ('fileId' in changes) {
       const next = changes['fileId'].currentValue as number | null;
@@ -254,6 +267,55 @@ export class FileReview implements OnChanges, OnDestroy {
    * stage stays the same; reviewers clear their own revision requests
    * with Resolve after review.
    */
+  /** Toggle the reupload panel open/closed and pre-populate fields from the current file. */
+  toggleReuploadPanel(): void {
+    if (!this.reuploadExpanded && this.file) {
+      // Pre-populate from current document metadata
+      const f = this.file;
+      const dt = f.document_type ?? 'dlp';
+      if (dt === 'custom') {
+        this.reuploadDocType = 'custom';
+        this.reuploadCustomMode = true;
+        this.reuploadCustomLabel = f.custom_type_label ?? '';
+        const stops: number[] = Array.isArray(f.custom_stops)
+          ? (f.custom_stops as number[])
+          : (typeof f.custom_stops === 'string' ? JSON.parse(f.custom_stops) : []);
+        this.reuploadPickCoordinator = stops.includes(2);
+        this.reuploadPickMaster      = stops.includes(3);
+        this.reuploadPickPrincipal   = stops.includes(4);
+      } else {
+        this.reuploadDocType = dt as 'dlp' | 'examination';
+        this.reuploadCustomMode = false;
+        this.reuploadCustomLabel = '';
+        this.reuploadPickCoordinator = false;
+        this.reuploadPickMaster      = false;
+        this.reuploadPickPrincipal   = false;
+      }
+      this.reuploadDescription = f.description ?? '';
+      this.reuploadMoreDetails = f.more_details ?? '';
+    }
+    this.reuploadExpanded = !this.reuploadExpanded;
+  }
+
+  onReuploadCustomLabelChange(): void {
+    this.reuploadCustomMode = this.reuploadCustomLabel.trim().length > 0;
+    if (this.reuploadCustomMode) this.reuploadDocType = 'custom';
+  }
+
+  onReuploadToggleStop(level: 2 | 3 | 4): void {
+    if (level === 2) this.reuploadPickCoordinator = !this.reuploadPickCoordinator;
+    if (level === 3) this.reuploadPickMaster      = !this.reuploadPickMaster;
+    if (level === 4) this.reuploadPickPrincipal   = !this.reuploadPickPrincipal;
+  }
+
+  private reuploadSelectedStops(): number[] {
+    const s: number[] = [];
+    if (this.reuploadPickCoordinator) s.push(2);
+    if (this.reuploadPickMaster)      s.push(3);
+    if (this.reuploadPickPrincipal)   s.push(4);
+    return s;
+  }
+
   onReuploadFile(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files && input.files[0];
@@ -266,13 +328,34 @@ export class FileReview implements OnChanges, OnDestroy {
       input.value = '';
       return;
     }
+
+    // Validate custom mode
+    if (this.reuploadCustomMode) {
+      const stops = this.reuploadSelectedStops();
+      if (stops.length === 0) {
+        this.errorMessage.set('Pick at least one reviewer for the custom workflow.');
+        input.value = '';
+        return;
+      }
+    }
+
     const fileId = this.file.id;
+    const customLabel = this.reuploadCustomLabel.trim();
+    const meta = {
+      documentType: (this.reuploadCustomMode ? 'custom' : this.reuploadDocType) as import('../../models/file.models').DocumentType,
+      description:  this.reuploadDescription,
+      moreDetails:  this.reuploadMoreDetails,
+      customTypeLabel: customLabel || undefined,
+      customStops: this.reuploadCustomMode ? this.reuploadSelectedStops() : undefined,
+    };
+
     this.runAction(
-      () => this.fileService.reupload(fileId, file).toPromise(),
-      'Document re-uploaded. The file remains at the same review stage; reviewers resolve their own revision requests when satisfied.',
+      () => this.fileService.reupload(fileId, file, meta).toPromise(),
+      'Document re-uploaded with updated settings. The workflow has been reset to the appropriate review stage.',
       { refreshPdf: true }
     );
     input.value = '';
+    this.reuploadExpanded = false;
   }
 
   resolveComment(comment: FileComment): void {

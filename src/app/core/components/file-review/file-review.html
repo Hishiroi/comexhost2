@@ -132,24 +132,121 @@
         </div>
 
         <div class="banner warning" *ngIf="canReupload">
-          A reviewer has marked this document for revision. Upload a corrected
-          PDF to replace the current file. The transaction number stays the
-          same; open revision requests will be cleared and the file stays at
-          the current review stage.
+          A reviewer has marked this document for revision. You can upload a corrected
+          PDF and optionally update the document type, description, and notes.
+          The transaction number stays the same and the workflow will reset to the
+          appropriate starting level.
         </div>
 
-        <div class="action-row" *ngIf="canReupload">
-          <label class="btn btn-primary reupload-btn" [class.disabled]="acting()">
-            <input
-              type="file"
-              accept="application/pdf,.pdf"
-              hidden
+        <!-- Reupload collapsible panel -->
+        <div *ngIf="canReupload">
+          <div class="action-row">
+            <button
+              type="button"
+              class="btn btn-primary"
               [disabled]="acting()"
-              (change)="onReuploadFile($event)"
-            />
-            {{ acting() ? 'Uploading...' : 'Re-upload PDF' }}
-          </label>
+              (click)="toggleReuploadPanel()"
+            >
+              {{ reuploadExpanded ? 'Cancel re-upload' : 'Re-upload revised PDF' }}
+            </button>
+          </div>
+
+          <div class="reupload-form" *ngIf="reuploadExpanded">
+            <!-- Custom type label -->
+            <label class="field">
+              <span>Custom document type <span class="muted small">(leave empty to use predefined workflow)</span></span>
+              <input
+                type="text"
+                name="reuploadCustomLabel"
+                placeholder="e.g. Grade, Report"
+                [(ngModel)]="reuploadCustomLabel"
+                [disabled]="acting()"
+                (ngModelChange)="onReuploadCustomLabelChange()"
+              />
+            </label>
+
+            <!-- Reviewer toggles (custom mode only) -->
+            <div class="field" *ngIf="reuploadCustomMode">
+              <span>Reviewers <span class="muted small">(pick at least one)</span></span>
+              <div class="choice-row">
+                <button
+                  type="button"
+                  class="choice-btn"
+                  [class.choice-btn-active]="reuploadPickCoordinator"
+                  [disabled]="acting()"
+                  (click)="onReuploadToggleStop(2)"
+                >Coordinator</button>
+                <button
+                  type="button"
+                  class="choice-btn"
+                  [class.choice-btn-active]="reuploadPickMaster"
+                  [disabled]="acting()"
+                  (click)="onReuploadToggleStop(3)"
+                >Master</button>
+                <button
+                  type="button"
+                  class="choice-btn"
+                  [class.choice-btn-active]="reuploadPickPrincipal"
+                  [disabled]="acting()"
+                  (click)="onReuploadToggleStop(4)"
+                >Principal</button>
+              </div>
+            </div>
+
+            <!-- Predefined workflow (locked when custom mode active) -->
+            <label class="field">
+              <span>Predefined workflow</span>
+              <select
+                name="reuploadDocType"
+                [(ngModel)]="reuploadDocType"
+                [disabled]="acting() || reuploadCustomMode"
+              >
+                <option value="dlp">DLP</option>
+                <option value="examination">Examination</option>
+              </select>
+              <span class="field-hint muted small" *ngIf="reuploadCustomMode">Locked — using custom type above.</span>
+            </label>
+
+            <!-- Description -->
+            <label class="field">
+              <span>Description <span class="muted small">(optional)</span></span>
+              <textarea
+                name="reuploadDescription"
+                rows="2"
+                placeholder="Briefly describe this submission"
+                [(ngModel)]="reuploadDescription"
+                [disabled]="acting()"
+              ></textarea>
+            </label>
+
+            <!-- Additional notes -->
+            <label class="field">
+              <span>Additional notes <span class="muted small">(optional)</span></span>
+              <textarea
+                name="reuploadMoreDetails"
+                rows="2"
+                placeholder="Extra context"
+                [(ngModel)]="reuploadMoreDetails"
+                [disabled]="acting()"
+              ></textarea>
+            </label>
+
+            <!-- File picker trigger -->
+            <div class="action-row">
+              <label class="btn btn-primary reupload-btn" [class.disabled]="acting()">
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  hidden
+                  [disabled]="acting()"
+                  (change)="onReuploadFile($event)"
+                />
+                {{ acting() ? 'Uploading...' : 'Choose PDF & submit' }}
+              </label>
+            </div>
+          </div>
         </div>
+
 
         <ng-container *ngIf="canComment || canForward || canFinalize">
           <label class="field">

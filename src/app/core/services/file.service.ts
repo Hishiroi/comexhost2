@@ -39,13 +39,30 @@ export class FileService {
   }
 
   /**
-   * Replace the PDF on an existing transaction (Teacher only). The
-   * workflow stage stays the same; open revisions must be cleared by
-   * each reviewer via Resolve when satisfied.
+   * Replace the PDF on an existing transaction (Teacher only).
+   * Optionally updates the document type, description, more_details,
+   * custom type label and reviewer stops in the same request.
    */
-  reupload(fileId: number, file: File): Observable<{ file: FileDoc }> {
+  reupload(
+    fileId: number,
+    file: File,
+    meta?: {
+      documentType?: DocumentType;
+      description?: string;
+      moreDetails?: string;
+      customTypeLabel?: string;
+      customStops?: number[];
+    }
+  ): Observable<{ file: FileDoc }> {
     const fd = new FormData();
     fd.append('file', file);
+    if (meta?.documentType) fd.append('document_type', meta.documentType);
+    if (meta?.description !== undefined) fd.append('description', meta.description);
+    if (meta?.moreDetails !== undefined) fd.append('more_details', meta.moreDetails);
+    if (meta?.customTypeLabel !== undefined) fd.append('custom_type_label', meta.customTypeLabel);
+    if (meta?.customStops && meta.customStops.length > 0) {
+      fd.append('custom_stops', JSON.stringify(meta.customStops));
+    }
     return this.http.post<{ file: FileDoc }>(`${this.base}/${fileId}/reupload`, fd);
   }
 

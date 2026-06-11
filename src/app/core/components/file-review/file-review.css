@@ -357,6 +357,65 @@
   opacity: 0.6;
 }
 
+/* Reupload inline form */
+.reupload-form {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.1rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+}
+
+.field input[type="text"],
+.field select {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.65rem;
+  width: 100%;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.choice-btn {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.7rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.choice-btn:hover {
+  background: #f3f4f6;
+}
+
+.choice-btn.choice-btn-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.action-row {
+  margin-top: 0.6rem;
+}
+
 /* ---------- Timeline card ----------
    The card flows naturally inside the scrollable right column, so we
    no longer constrain its height; entries render in full and the

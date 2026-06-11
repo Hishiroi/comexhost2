@@ -132,9 +132,9 @@
         </div>
 
         <div class="banner warning" *ngIf="canReupload">
-          A reviewer has marked this document for revision. You can upload a corrected
-          PDF and optionally update the document type, description, and notes.
-          The transaction number stays the same and the workflow will reset to the
+          A reviewer has marked this document for revision. Upload a corrected PDF —
+          the original document type and workflow are preserved automatically.
+          The transaction number stays the same and the workflow resets to its
           appropriate starting level.
         </div>
 
@@ -152,61 +152,6 @@
           </div>
 
           <div class="reupload-form" *ngIf="reuploadExpanded">
-            <!-- Custom type label -->
-            <label class="field">
-              <span>Custom document type <span class="muted small">(leave empty to use predefined workflow)</span></span>
-              <input
-                type="text"
-                name="reuploadCustomLabel"
-                placeholder="e.g. Grade, Report"
-                [(ngModel)]="reuploadCustomLabel"
-                [disabled]="acting()"
-                (ngModelChange)="onReuploadCustomLabelChange()"
-              />
-            </label>
-
-            <!-- Reviewer toggles (custom mode only) -->
-            <div class="field" *ngIf="reuploadCustomMode">
-              <span>Reviewers <span class="muted small">(pick at least one)</span></span>
-              <div class="choice-row">
-                <button
-                  type="button"
-                  class="choice-btn"
-                  [class.choice-btn-active]="reuploadPickCoordinator"
-                  [disabled]="acting()"
-                  (click)="onReuploadToggleStop(2)"
-                >Coordinator</button>
-                <button
-                  type="button"
-                  class="choice-btn"
-                  [class.choice-btn-active]="reuploadPickMaster"
-                  [disabled]="acting()"
-                  (click)="onReuploadToggleStop(3)"
-                >Master</button>
-                <button
-                  type="button"
-                  class="choice-btn"
-                  [class.choice-btn-active]="reuploadPickPrincipal"
-                  [disabled]="acting()"
-                  (click)="onReuploadToggleStop(4)"
-                >Principal</button>
-              </div>
-            </div>
-
-            <!-- Predefined workflow (locked when custom mode active) -->
-            <label class="field">
-              <span>Predefined workflow</span>
-              <select
-                name="reuploadDocType"
-                [(ngModel)]="reuploadDocType"
-                [disabled]="acting() || reuploadCustomMode"
-              >
-                <option value="dlp">DLP</option>
-                <option value="examination">Examination</option>
-              </select>
-              <span class="field-hint muted small" *ngIf="reuploadCustomMode">Locked — using custom type above.</span>
-            </label>
-
             <!-- Description -->
             <label class="field">
               <span>Description <span class="muted small">(optional)</span></span>

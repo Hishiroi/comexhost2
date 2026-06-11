@@ -435,21 +435,12 @@ async function reuploadFile(req, res, next) {
       }
 
       // ── Optional metadata update ──────────────────────────────────────
-      // If the teacher supplies metadata fields we update them too;
-      // otherwise we preserve whatever is already in the database.
-      let newDocumentType = file.document_type;
-      let newDescription  = undefined; // undefined = "no change"
-      let newMoreDetails  = undefined;
-      let newCustomLabel  = undefined;
-      let newCustomStops  = undefined;
-
-      if (req.body && req.body.document_type) {
-        const rawType = String(req.body.document_type);
-        if (!['dlp', 'examination', 'custom'].includes(rawType)) {
-          throw new HttpError(400, 'Invalid document_type');
-        }
-        newDocumentType = rawType;
-      }
+      // Preset (document_type, custom_type_label, custom_stops) is ALWAYS
+      // taken from the existing DB row — the teacher cannot change the
+      // workflow type during a reupload. Only description and more_details
+      // may be updated.
+      let newDescription = undefined; // undefined = "no change"
+      let newMoreDetails = undefined;
 
       if (req.body && 'description' in req.body) {
         newDescription = optionalString(req.body.description, 'description', { max: 4000 });
@@ -459,38 +450,19 @@ async function reuploadFile(req, res, next) {
         newMoreDetails = optionalString(req.body.more_details, 'more_details', { max: 4000 });
       }
 
-      if (req.body && 'custom_type_label' in req.body) {
-        newCustomLabel = optionalString(req.body.custom_type_label, 'custom_type_label', { max: 255 });
-        if (newCustomLabel && newCustomLabel.trim()) {
-          newDocumentType = 'custom';
-          const stops = parseAndNormalizeCustomStops(req.body);
-          newCustomStops = JSON.stringify(stops);
-        } else {
-          newCustomLabel = null;
-          newCustomStops = null;
-        }
-      } else if (req.body && req.body.custom_stops) {
-        try {
-          const arr = JSON.parse(req.body.custom_stops);
-          if (Array.isArray(arr)) newCustomStops = JSON.stringify(arr);
-        } catch (e) {}
-      }
-
-      // Compute the correct reset level based on the (possibly new) document type
-      const effectiveCustomStops = newCustomStops !== undefined
-        ? newCustomStops
-        : (typeof file.custom_stops === 'string'
-            ? file.custom_stops
-            : Array.isArray(file.custom_stops)
-              ? JSON.stringify(file.custom_stops)
-              : null);
+      // Compute resetLevel from the EXISTING document_type in the DB.
+      const existingCustomStops = typeof file.custom_stops === 'string'
+        ? file.custom_stops
+        : Array.isArray(file.custom_stops)
+          ? JSON.stringify(file.custom_stops)
+          : null;
 
       let resetLevel = ROLES.MASTER; // DLP: starts at Master
-      if (newDocumentType === 'examination') {
+      if (file.document_type === 'examination') {
         resetLevel = ROLES.COORDINATOR;
-      } else if (newDocumentType === 'custom' && effectiveCustomStops) {
+      } else if (file.document_type === 'custom' && existingCustomStops) {
         try {
-          const stops = JSON.parse(effectiveCustomStops);
+          const stops = JSON.parse(existingCustomStops);
           if (Array.isArray(stops) && stops.length > 0) resetLevel = stops[0];
         } catch (_) { /* keep default */ }
       }
@@ -511,8 +483,9 @@ async function reuploadFile(req, res, next) {
         throw new HttpError(500, 'Failed to upload new file to storage');
       }
 
-      // Build the UPDATE statement dynamically so we only touch columns
-      // that were actually provided by the teacher.
+      // Build the UPDATE statement — preset columns are never changed on
+      // reupload; only the PDF-related columns, level, status, and the
+      // optional description/notes are updated.
       const setClauses = [
         'original_name = $1',
         'stored_name   = $2',
@@ -520,7 +493,6 @@ async function reuploadFile(req, res, next) {
         'size_bytes    = $3',
         'current_level = $4',
         'status        = $5',
-        'document_type = $6',
       ];
       const updateParams = [
         req.file.originalname.slice(0, 255),
@@ -528,7 +500,6 @@ async function reuploadFile(req, res, next) {
         req.file.size,
         resetLevel,
         STATUS.UPLOADED,
-        newDocumentType,
       ];
 
       if (newDescription !== undefined) {
@@ -538,14 +509,6 @@ async function reuploadFile(req, res, next) {
       if (newMoreDetails !== undefined) {
         updateParams.push(newMoreDetails);
         setClauses.push(`more_details = $${updateParams.length}`);
-      }
-      if (newCustomLabel !== undefined) {
-        updateParams.push(newCustomLabel);
-        setClauses.push(`custom_type_label = $${updateParams.length}`);
-      }
-      if (newCustomStops !== undefined) {
-        updateParams.push(newCustomStops);
-        setClauses.push(`custom_stops = $${updateParams.length}`);
       }
 
       updateParams.push(file.id);
